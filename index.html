@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sqrt</title>
+
+    <style>
+        .value {
+            width: 100%;
+        }
+
+        .result {
+            width: 100%;
+            word-wrap: break-word;
+        }
+
+    </style>
+</head>
+
+<body>
+    <main>
+        <div>
+            <select title="Select language">
+                <option selected>Russian</option>
+                <option>English</option>
+                <option>Deutch</option>
+                <option>Espanol</option>
+                <option>French</option>
+            </select>
+        </div>
+
+        <div>
+            <label for="value">Enter value</label>
+            <input id="value" class="value" type="text" />
+        </div>
+
+        <div>
+            <span id="result" class="result">The result will be here</span>
+        </div>
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/5.0.0/math.js"
+        integrity="sha512-+KihqiIrhYt4/tFb42KiOJ+wr0PM6dVMw9twO1Ju+sZ0OdgurvE/9dy2jAS0Fr0MCVryF2EXxPH9HRXg6CaFgg=="
+        crossorigin="anonymous"></script>
+
+    <script>
+        math.config({
+            number: 'BigNumber',
+            precision: 512
+        })
+
+        const dictRu = {
+
+        }
+        const dictEn = {
+
+        }
+        const dictDe = {
+
+        }
+        const dictEs = {
+
+        }
+        const dictFr = {
+
+        }
+
+        const valueElement = document.getElementById('value')
+        const resultElement = document.getElementById('result')
+
+        valueElement.addEventListener('input', e => {
+            var value = e.target.value.trim()
+
+            try {
+                if (value.match(/^-?[0-9]*$/)) {
+                    value = math.bignumber(value)
+                } else {
+                    value = math.complex(value)
+                }
+            } catch (e) {
+                return
+            }
+
+            const result = math.sqrt(value)
+            resultElement.innerText = math.format(result, { notation: 'fixed' })
+        })
+    </script>
+</body>
+
+</html>
