@@ -68,37 +68,58 @@
     <main class="w-100 d-flex flex-row flex-nowrap justify-content-center">
         <div class="panel p-4">
             <div>
+                <label class="text-white text-center d-block h4 p-1" for="precision">Input value</label>
                 <input id="value" class="value w-100 form-control" type="text" aria-label="Input value" />
+            </div>
+
+            <div class="mt-4">
+                <label class="text-white text-center d-block h4 p-1" for="precision">
+                    Significant digits
+                </label>
+
+                <div class="d-flex flex-row flex-nowrap gap-4 align-items-center">
+                    <input id="precision" class="text-end form-control" type="number"
+                        aria-label="Input field for adjusting number of significant digits" />
+                    <input id="precision-slider" class="form-range" type="range"
+                        aria-label="Slider for adjusting number of significant digits" />
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <label class="text-white text-center d-block h4 p-1" for="precision">
+                    Digits after the decimal point
+                </label>
+
+                <div class="d-flex flex-row flex-nowrap gap-4 align-items-center">
+                    <input id="digits-after-point" class="text-end form-control" type="number"
+                        aria-label="Input field for adjusting number of digits after the decimal point" />
+                    <input id="digits-after-point-slider" class="form-range" type="range"
+                        aria-label="Slider for adjusting number of digits after the decimal point" />
+                </div>
             </div>
 
             <div class="w-100 mt-3">
                 <p id="result" class="result px-3 py-2 text-break rounded-3 text-white">
-                    Enter input value above
+                    Enter input value
                 </p>
-            </div>
-
-            <div class="mt-4">
-                <label class="text-white text-center d-block h4 p-1" for="precision">Digits after the decimal
-                    point</label>
-
-                <div class="d-flex flex-row flex-nowrap gap-4 align-items-center">
-                    <input id="precision" class="precision text-end form-control" type="number" min="0" max="10000" />
-                    <input id="precision-slider" class="precision-slider form-range" type="range" min="0" max="10000"
-                        aria-label="Slider for adjusting number of digits after the decimal point" />
-                </div>
             </div>
         </div>
     </main>
-
-    <footer class="text-white w-100 text-center fixed-bottom">
-        <span class="p-2">Web sqrt, 2021</span>
-    </footer>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/5.0.0/math.js"
         integrity="sha512-+KihqiIrhYt4/tFb42KiOJ+wr0PM6dVMw9twO1Ju+sZ0OdgurvE/9dy2jAS0Fr0MCVryF2EXxPH9HRXg6CaFgg=="
         crossorigin="anonymous"></script>
 
     <script>
+        const config = {
+            defaultPrecision: 100,
+            minPrecision: 10,
+            maxPrecision: 10000,
+            defaultDigitsAfterPoint: 50,
+            minDigitsAfterPoint: 0,
+            maxDigitsAfterPoint: 10000
+        }
+
         const dictRu = {
 
         }
@@ -117,12 +138,57 @@
 
         const valueInput = document.getElementById('value')
         const resultInput = document.getElementById('result')
+
         const precisionInput = document.getElementById('precision')
         const precisionSlider = document.getElementById('precision-slider')
+
+        const digitsAfterPointInput = document.getElementById('digits-after-point')
+        const digitsAfterPointSlider = document.getElementById('digits-after-point-slider')
+
         const languageSelect = document.getElementById('language')
 
-        valueInput.addEventListener('input', e => {
-            var value = e.target.value.trim()
+        const clampDigits = (value) => {
+            value = value.toString()
+
+            const index = value.indexOf('.')
+            if (index === -1) {
+                return value
+            }
+
+            const digits = digitsAfterPointInput.valueAsNumber
+            if (digits === 0) {
+                return value.slice(0, index)
+            } else {
+                return value.slice(0, index + 1 + digits)
+            }
+        }
+
+        const clamp = (precision, min, max) => {
+            precision = Math.max(precision, min)
+            return Math.min(precision, max)
+        }
+
+        const setPrecision = precision => {
+            precision = clamp(precision, config.minPrecision, config.maxPrecision)
+
+            math.config({
+                number: 'BigNumber',
+                precision: precision
+            })
+
+            precisionInput.value = precision
+            precisionSlider.value = precision
+        }
+
+        const setDigitsAfterPoint = digits => {
+            digits = clamp(digits, config.minDigitsAfterPoint, config.maxDigitsAfterPoint)
+
+            digitsAfterPointInput.value = digits
+            digitsAfterPointSlider.value = digits
+        }
+
+        const updateResult = () => {
+            var value = valueInput.value.trim()
 
             try {
                 if (value.match(/^-?[0-9]*$/)) {
@@ -135,9 +201,56 @@
             }
 
             const result = math.sqrt(value)
+
+            var formatted = ''
+            if ('re' in result) {
+                const digits = digitsAfterPointInput.valueAsNumber
+                var [re, im] = math.format(result, { notation: 'fixed' })
+                [re, im] = [clampDigits(result.re), clampDigits(result.im)]
+
+                if (re !== '0' && im !== '0') {
+                    if (im > 0) {
+                        formatted = `${re} + ${im}i`
+                    } else {
+                        formatted = `${re} - ${-im}i`
+                    }
+                } else if (re === '0') {
+                    formatted = `${im}i`
+                } else {
+                    formatted = `${re}`
+                }
+            } else {
+                const value = math.format(result, { notation: 'fixed' })
+                formatted = clampDigits(value)
+            }
+
             const nonBreakingSpace = '\u00A0'
-            resultInput.innerText = '=' + nonBreakingSpace + math.format(result, { notation: 'fixed' })
-        })
+            resultInput.innerText = '=' + nonBreakingSpace + formatted
+        }
+
+
+        valueInput.addEventListener('input', updateResult)
+
+        for (let input of [precisionInput, precisionSlider]) {
+            input.min = config.minPrecision
+            input.max = config.maxPrecision
+            input.addEventListener('input', e => {
+                setPrecision(e.target.valueAsNumber)
+                updateResult()
+            })
+        }
+
+        for (let input of [digitsAfterPointInput, digitsAfterPointSlider]) {
+            input.min = config.minDigitsAfterPoint
+            input.max = config.maxDigitsAfterPoint
+            input.addEventListener('input', e => {
+                setDigitsAfterPoint(e.target.valueAsNumber)
+                updateResult()
+            })
+        }
+
+        setPrecision(config.defaultPrecision)
+        setDigitsAfterPoint(config.defaultDigitsAfterPoint)
     </script>
 </body>
 
