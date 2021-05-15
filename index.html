@@ -4,53 +4,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sqrt</title>
+    <title>Web sqrt</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
 
     <style>
-        .value {
+        :root {
+            --bg-color: #333336;
+            --bg-color-lighter: white;
+            --bg-color-darker: #222226;
+            --text-color: white;
+        }
+
+        header {
+            background-color: var(--bg-color);
+        }
+
+        footer {
+            background-color: var(--bg-color);
+        }
+
+        body {
+            background-color: var(--bg-color-darker);
+        }
+
+        select.bg-transparent.text-white>option {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        .panel {
+            background-color: var(--bg-color);
             width: 100%;
+            max-width: 50em;
+            min-width: 20em;
         }
 
         .result {
-            width: 100%;
-            word-wrap: break-word;
+            background-color: var(--bg-color-darker);
         }
 
     </style>
 </head>
 
 <body>
-    <main>
-        <div>
-            <select title="Select language">
-                <option selected>Russian</option>
-                <option>English</option>
-                <option>Deutch</option>
-                <option>Espanol</option>
-                <option>French</option>
-            </select>
-        </div>
+    <header>
+        <div class="d-flex flex-row flex-nowrap align-items-center justify-content-between px-4 p-2">
+            <h1 class="text-white text-center">Square root calculation</h1>
 
-        <div>
-            <label for="value">Enter value</label>
-            <input id="value" class="value" type="text" />
+            <div>
+                <select id="language" class="form-select text-white bg-transparent" title="Select language">
+                    <option selected>Russian</option>
+                    <option>English</option>
+                    <option>Deutch</option>
+                    <option>Espanol</option>
+                    <option>French</option>
+                </select>
+            </div>
         </div>
+    </header>
 
-        <div>
-            <span id="result" class="result">The result will be here</span>
+    <main class="w-100 d-flex flex-row flex-nowrap justify-content-center">
+        <div class="panel p-4">
+            <div>
+                <input id="value" class="value w-100 form-control" type="text" aria-label="Input value" />
+            </div>
+
+            <div class="w-100 mt-3">
+                <p id="result" class="result px-3 py-2 text-break rounded-3 text-white">
+                    Enter input value above
+                </p>
+            </div>
+
+            <div class="mt-4">
+                <label class="text-white text-center d-block h4 p-1" for="precision">Digits after the decimal
+                    point</label>
+
+                <div class="d-flex flex-row flex-nowrap gap-4 align-items-center">
+                    <input id="precision" class="precision text-end form-control" type="number" min="0" max="10000" />
+                    <input id="precision-slider" class="precision-slider form-range" type="range" min="0" max="10000"
+                        aria-label="Slider for adjusting number of digits after the decimal point" />
+                </div>
+            </div>
         </div>
     </main>
+
+    <footer class="text-white w-100 text-center fixed-bottom">
+        <span class="p-2">Web sqrt, 2021</span>
+    </footer>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/5.0.0/math.js"
         integrity="sha512-+KihqiIrhYt4/tFb42KiOJ+wr0PM6dVMw9twO1Ju+sZ0OdgurvE/9dy2jAS0Fr0MCVryF2EXxPH9HRXg6CaFgg=="
         crossorigin="anonymous"></script>
 
     <script>
-        math.config({
-            number: 'BigNumber',
-            precision: 512
-        })
-
         const dictRu = {
 
         }
@@ -67,10 +115,13 @@
 
         }
 
-        const valueElement = document.getElementById('value')
-        const resultElement = document.getElementById('result')
+        const valueInput = document.getElementById('value')
+        const resultInput = document.getElementById('result')
+        const precisionInput = document.getElementById('precision')
+        const precisionSlider = document.getElementById('precision-slider')
+        const languageSelect = document.getElementById('language')
 
-        valueElement.addEventListener('input', e => {
+        valueInput.addEventListener('input', e => {
             var value = e.target.value.trim()
 
             try {
@@ -84,7 +135,8 @@
             }
 
             const result = math.sqrt(value)
-            resultElement.innerText = math.format(result, { notation: 'fixed' })
+            const nonBreakingSpace = '\u00A0'
+            resultInput.innerText = '=' + nonBreakingSpace + math.format(result, { notation: 'fixed' })
         })
     </script>
 </body>
