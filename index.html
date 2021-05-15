@@ -189,15 +189,16 @@
             digitsAfterPointSlider.value = digits
         }
 
-        const updateResult = () => {
-            var value = valueInput.value.trim()
+        const setPrecisionSupported = value => {
+            for (let input of [precisionInput, precisionSlider]) {
+                input.disabled = !value
+            }
+        }
 
+        const updateResult = () => {
             try {
-                if (value.match(/^-?[0-9]*$/)) {
-                    value = math.bignumber(value)
-                } else {
-                    value = math.complex(value)
-                }
+                var value = math.eval(valueInput.value)
+                setPrecisionSupported(!('re' in value))
             } catch (e) {
                 return
             }
